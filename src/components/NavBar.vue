@@ -1,5 +1,10 @@
 <script setup>
 import { ref } from 'vue'
+import { useAuth } from '../store/auth';
+import { useRouter } from 'vue-router';
+const { state, isAuthed, role, logout } = useAuth();
+const router = useRouter();
+function doLogout(){ logout(); router.push('/'); }
 const open = ref(false)
 const toggle = () => (open.value = !open.value)
 </script>
@@ -19,7 +24,12 @@ const toggle = () => (open.value = !open.value)
       <li><RouterLink to="/reflect">Reflect</RouterLink></li>
       <li><RouterLink to="/connect">Connect</RouterLink></li>
       <li><RouterLink to="/refer">Refer</RouterLink></li>
-      <li><RouterLink to="/results">Result View</RouterLink></li>
+      <li><RouterLink to="/reviews">Reviews</RouterLink></li>
+      <li v-if="isAuthed"><RouterLink to="/results">Result View</RouterLink></li>
+      <li v-if="isAuthed && role==='admin'"><RouterLink to="/admin">Admin</RouterLink></li>
+      <li v-if="!isAuthed"><RouterLink to="/login">Login</RouterLink></li>
+      <li v-if="!isAuthed"><RouterLink to="/register">Register</RouterLink></li>
+      <li v-if="isAuthed"><button class="btn ghost" @click="doLogout">Logout</button></li>
     </ul>
   </nav>
 </template>
