@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "title": "Coping with Stress",
+    "tag": "stress",
+    "summary": "Quick grounding techniques and small daily habits."
+  },
+  {
+    "id": 2,
+    "title": "Sleep & Energy",
+    "tag": "sleep",
+    "summary": "Simple routines for better rest and brighter mornings."
+  },
+  {
+    "id": 3,
+    "title": "Online Safety",
+    "tag": "esafety",
+    "summary": "Stay kind online and protect your wellbeing."
+  },
+  {
+    "id": 4,
+    "title": "Coping with Change",
+    "tag": "change",
+    "summary": "Handle new schools, exams, or moving house with confidence."
+  }
+]
