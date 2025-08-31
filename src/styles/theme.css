@@ -1,74 +1,82 @@
 :root{
-  --bg:#0f172a;  
-  --card:#111827;
-  --text:#f8fafc;
-  --muted:#cbd5e1;
-  --brand:#86efac;
-  --brand-600:#22c55e;
+  /* Light-green theme: page/card bg is lighter than the Discover button */
+  --bg:#ecfbf3;          /* page background (very light green) */
+  --card:#dff7ea;        /* card background, slightly darker than bg */
+  --border:#bfe9d5;      /* soft green border */
+  --text:#113a2f;        /* dark readable text */
+  --muted:#3a6d5d;       /* muted text */
+  --brand:#86efac;       /* Discover button (darker than bg) */
+  --brand-600:#22c55e;   /* button hover/active */
   --danger:#ef4444;
   --warning:#f59e0b;
   --ok:#10b981;
-  --link:#93c5fd;
+  --link:#0f766e;        /* teal-ish links on light bg */
 }
 
 *{box-sizing:border-box}
 html,body,#app{height:100%}
-body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;
+}
 
 a{color:var(--link);text-decoration:none}
 a:hover{text-decoration:underline}
 
 .container{max-width:1100px;margin:auto;padding:1rem}
-.grid{
-  display:grid; gap:1rem;
-  grid-template-columns:repeat(12,1fr);
-}
+.grid{display:grid; gap:1rem; grid-template-columns:repeat(12,1fr)}
+
 .card{
   background:var(--card);
-  border:1px solid #1f2937;
+  border:1px solid var(--border);
   border-radius:16px;
   padding:1rem;
-  box-shadow:0 6px 20px rgba(0,0,0,.25);
+  box-shadow:0 6px 16px rgba(16,78,56,.08);
 }
+
+/* Buttons: primary = Discover green, ghost = outlined */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;
   padding:.6rem 1rem;border-radius:12px;border:1px solid transparent;
-  background:var(--brand);color:#052e16;font-weight:600;cursor:pointer
+  background:var(--brand);color:#052e16;font-weight:600;cursor:pointer;
 }
 .btn:hover{background:var(--brand-600);color:white}
-.btn.ghost{background:transparent;border-color:#334155;color:var(--text)}
-.btn.ghost:hover{background:#111827}
+.btn.ghost{background:transparent;border-color:var(--border);color:var(--text)}
+.btn.ghost:hover{background:#eefaf4}
 
+/* Inputs on light background */
 .input,select,textarea{
-  width:100%;padding:.7rem .8rem;border-radius:12px;border:1px solid #334155;background:#0b1220;color:var(--text)
+  width:100%;padding:.7rem .8rem;border-radius:12px;
+  border:1px solid var(--border);
+  background:#f6fff9;  /* light input bg to match page */
+  color:var(--text);
 }
 .input:focus,select:focus,textarea:focus{outline:2px solid var(--brand-600)}
 
 .helper{font-size:.85rem;color:var(--muted)}
 .error{color:var(--danger);font-size:.85rem}
 
+/* Header/ footer on light theme */
 header.site{
-  position:sticky;top:0;z-index:40;background:rgba(15,23,42,.7);backdrop-filter:blur(10px);
-  border-bottom:1px solid #1f2937
+  position:sticky;top:0;z-index:40;
+  background:rgba(236,251,243,.8); /* translucent light green */
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
 }
 nav.wrap{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
 
-.hero{
-  display:grid; align-items:center; gap:1rem;
-  grid-template-columns: 1.2fr 1fr;
-  padding:2rem 0;
-}
+.hero{display:grid; align-items:center; gap:1rem; grid-template-columns:1.2fr 1fr; padding:2rem 0}
 .hero h1{font-size:2.2rem;margin:.2rem 0}
 .hero p{color:var(--muted);line-height:1.6}
 .hero .actions{display:flex;gap:.7rem;flex-wrap:wrap}
 
-.footer{border-top:1px solid #1f2937;margin-top:3rem;padding:2rem 0;color:#9ca3af}
-
-
-@media (max-width: 960px){
-  .hero{grid-template-columns:1fr}
-  .grid{grid-template-columns:repeat(6,1fr)}
+.footer{
+  border-top:1px solid var(--border);
+  margin-top:3rem;padding:2rem 0;color:var(--muted);
 }
-@media (max-width: 640px){
-  .grid{grid-template-columns:repeat(4,1fr)}
-}
+
+/* responsive rules as before */
+@media (max-width: 960px){ .hero{grid-template-columns:1fr} .grid{grid-template-columns:repeat(6,1fr)} }
+@media (max-width: 640px){ .grid{grid-template-columns:repeat(4,1fr)} }
