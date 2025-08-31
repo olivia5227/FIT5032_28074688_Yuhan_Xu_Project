@@ -59,4 +59,13 @@
 @media (max-width: 640px){
   .hero--center{ min-height: 70vh; }
 }
+/* Left align the bullet card and its content */
+.hero-bullets{
+  text-align: left;        /* override .hero--center { text-align:center } */
+}
+.hero-bullets ul{
+  margin: 0;               /* keep tight top/bottom */
+  padding-left: 1.25rem;   /* indent bullets a bit */
+  line-height: 1.8;        /* comfortable reading */
+}
 </style>
