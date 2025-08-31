@@ -11,6 +11,8 @@
   --warning:#f59e0b;
   --ok:#10b981;
   --link:#0f766e;        /* teal-ish links on light bg */
+  --peach-card:  #FDE8D9; /* light peach background */
+  --peach-border:#FBD5C0; /* soft peach border     */
 }
 
 *{box-sizing:border-box}
@@ -34,6 +36,11 @@ a:hover{text-decoration:underline}
   border-radius:16px;
   padding:1rem;
   box-shadow:0 6px 16px rgba(16,78,56,.08);
+}
+/* Peach variant for suggestion cards */
+.card.peach{
+  background: var(--peach-card);
+  border-color: var(--peach-border);
 }
 
 /* Buttons: primary = Discover green, ghost = outlined */

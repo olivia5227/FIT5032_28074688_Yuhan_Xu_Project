@@ -44,7 +44,7 @@ function onSubmitted(payload) {
         <div style="grid-column:span 12"><strong>Notes:</strong> {{ lastPayload.notes || '—' }}</div>
       </div>
 
-      <div class="card" style="margin-top:1rem;background:#0b1220">
+      <div class="card peach" style="margin-top:1rem">
         <strong>Suggestions</strong>
         <ul>
           <li v-for="(t,i) in lastPayload.suggestions" :key="i">{{ t }}</li>

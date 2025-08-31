@@ -62,7 +62,7 @@ function moodText(m) {
             <span v-if="item.notes"> • Notes: {{ item.notes }}</span>
           </div>
 
-          <div class="card" style="margin-top:.6rem;background:#0b1220">
+          <div class="card peach" style="margin-top:.6rem">
             <strong>Suggestions</strong>
             <ul>
               <li v-for="(t,i) in item.suggestions" :key="i">{{ t }}</li>

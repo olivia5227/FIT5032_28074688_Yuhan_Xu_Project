@@ -114,7 +114,7 @@ function submit() {
       <button class="btn ghost" type="reset">Reset</button>
     </div>
 
-    <div v-if="valid" class="card" style="margin-top:1rem;background:#0b1220">
+    <div v-if="valid" class="card peach" style="margin-top:1rem">
       <strong>Suggestions</strong>
       <ul>
         <li v-for="(t,i) in result" :key="i">{{ t }}</li>
