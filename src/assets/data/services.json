@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Kids Helpline",
+    "type": "Phone/Online",
+    "region": "AU",
+    "url": "https://kidshelpline.com.au/",
+    "phone": "1800 55 1800"
+  },
+  {
+    "name": "Headspace",
+    "type": "Centres & Online",
+    "region": "AU",
+    "url": "https://headspace.org.au/",
+    "phone": ""
+  },
+  {
+    "name": "Lifeline",
+    "type": "Crisis (24/7)",
+    "region": "AU",
+    "url": "https://www.lifeline.org.au/",
+    "phone": "13 11 14"
+  }
+]
