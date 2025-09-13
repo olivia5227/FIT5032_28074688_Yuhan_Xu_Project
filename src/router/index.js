@@ -1,10 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import Home     from '../views/Home.vue';
-import Discover from '../views/Discover.vue';
 import Reflect  from '../views/Reflect.vue';
 import Connect  from '../views/Connect.vue';
-import Refer    from '../views/Refer.vue';
 import Results  from '../views/Results.vue';        // Result View (history)
 
 import Login    from '../views/auth/Login.vue';
@@ -17,10 +15,9 @@ import ReviewsAdmin  from '../views/ReviewsAdmin.vue';   // admin manage ratings
 
 const routes = [
   { path: '/',           name: 'Home',     component: Home },
-  { path: '/discover',   name: 'Discover', component: Discover },
   { path: '/reflect',    name: 'Reflect',  component: Reflect },
   { path: '/connect',    name: 'Connect',  component: Connect },
-  { path: '/refer',      name: 'Refer',    component: Refer },
+
 
   // ===== Role protected =====
   { path: '/results',        name: 'Results',       component: Results,      meta: { requiresAuth: true, roles: ['admin'] } },

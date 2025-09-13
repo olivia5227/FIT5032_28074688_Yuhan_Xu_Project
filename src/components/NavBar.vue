@@ -26,6 +26,25 @@ function handleClickOutside(event) {
   }
 }
 
+function scrollToRefer() {
+  // If we're on the home page, scroll to refer section
+  if (router.currentRoute.value.path === '/') {
+    document.getElementById('refer')?.scrollIntoView({ 
+      behavior: 'smooth' 
+    });
+  } else {
+    // If we're on another page, navigate to home then scroll
+    router.push('/').then(() => {
+      setTimeout(() => {
+        document.getElementById('refer')?.scrollIntoView({ 
+          behavior: 'smooth' 
+        });
+      }, 100);
+    });
+  }
+}
+
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
 });
@@ -47,10 +66,9 @@ onUnmounted(() => {
         <!-- Main Navigation (Center) -->
         <ul class="main-nav">
           <li><RouterLink to="/">Home</RouterLink></li>
-          <li><RouterLink to="/discover">Discover</RouterLink></li>
           <li><RouterLink to="/reflect">Reflect</RouterLink></li>
           <li><RouterLink to="/connect">Connect</RouterLink></li>
-          <li><RouterLink to="/refer">Refer</RouterLink></li>
+          <li><a href="/#refer" @click.prevent="scrollToRefer">Refer</a></li>
         </ul>
 
         <!-- User Section (Right) -->
@@ -295,7 +313,7 @@ onUnmounted(() => {
   color: #721c24;
 }
 
-/* 响应式设计 */
+/* Responsive design */
 @media (max-width: 768px) {
   .nav-wrapper {
     flex-direction: column;
