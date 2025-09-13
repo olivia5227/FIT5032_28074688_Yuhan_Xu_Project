@@ -229,10 +229,12 @@ onUnmounted(() => {
   position: absolute;
   top: 100%;
   right: 0;
-  background: white;
-  border: 1px solid #e5e5e5;
+  background: rgba(255, 255, 255, 0.8);  /* Semi-transparent background */
+  border: 1px solid rgba(229, 229, 229, 0.6);  /* Semi-transparent border */
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  backdrop-filter: blur(12px);  /* Frosted glass effect */
+  -webkit-backdrop-filter: blur(12px);  /* Safari support */
   min-width: 180px;
   opacity: 0;
   visibility: hidden;

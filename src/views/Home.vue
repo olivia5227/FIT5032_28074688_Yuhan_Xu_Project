@@ -25,7 +25,7 @@
 
       <!-- Right: the four bullet points card -->
       <div class="hero-right">
-        <div class="hero-bullets card">
+        <div class="hero-bullets card card-dark-brown">
           <ul class="helper">
             <li><strong>Discover</strong> bite-size resources (stress, sleep, online safety)</li>
             <li><strong>Reflect</strong> quick self-check with instant tips</li>
@@ -128,6 +128,29 @@
   .hero-text h1 {
     font-size: 2rem;
   }
+}
+
+/* Dark brown variant for the right side card */
+.card-dark-brown {
+  background: rgba(139, 109, 76, 0.5) !important;  /* Lighter brown with 50% transparency */
+  border-color: rgba(160, 130, 98, 0.6) !important;  /* Lighter brown border */
+  color: white !important;
+}
+
+.card-dark-brown ul {
+  color: white;
+}
+
+.card-dark-brown li {
+  color: white;
+}
+
+.card-dark-brown strong {
+  color: #f4e4bc;  /* Light cream color for emphasis */
+}
+
+.card-dark-brown .helper {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Optional: slightly smaller min-height on very small screens */
