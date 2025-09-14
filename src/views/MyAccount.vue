@@ -1102,10 +1102,13 @@ function togglePasswordChange() {
 .history-grid {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(350px, 350px));
+  justify-content: center;
 }
 
 .history-card {
+  width: 350px;
+  max-width: 350px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -1270,6 +1273,19 @@ function togglePasswordChange() {
   text-decoration: underline;
 }
 
+/* Medium screen adjustments */
+@media (max-width: 1024px) and (min-width: 641px) {
+  .history-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 350px));
+    justify-content: center;
+  }
+
+  .history-card {
+    width: 350px;
+    max-width: 350px;
+  }
+}
+
 /* Responsive design */
 @media (max-width: 640px) {
   .account-container {
@@ -1308,6 +1324,12 @@ function togglePasswordChange() {
 
   .history-grid {
     grid-template-columns: 1fr;
+    justify-content: center;
+  }
+
+  .history-card {
+    width: 100%;
+    max-width: 100%;
   }
 
   .history-header {
