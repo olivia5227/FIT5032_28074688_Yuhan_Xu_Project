@@ -25,11 +25,18 @@ export function useAuth(){
   const isAuthed = computed(()=> !!state.token);
   const role = computed(()=> state.role);
 
-  async function register({ email, password, role='user' }) {
+  async function register({ username, email, password, address, emergencyContactName, emergencyContactPhone, role='user' }) {
     const users = load(USERS_KEY, {});
     if (users[email]) throw new Error('User already exists');
     const hash = await sha256(password);
-    users[email] = { hash, role };
+    users[email] = {
+      username,
+      hash,
+      address,
+      emergencyContactName: emergencyContactName || '',
+      emergencyContactPhone: emergencyContactPhone || '',
+      role
+    };
     save(USERS_KEY, users);
     await login({ email, password }); // auto-sign-in
   }
@@ -40,7 +47,13 @@ export function useAuth(){
     if (!record) throw new Error('User not found');
     const hash = await sha256(password);
     if (record.hash !== hash) throw new Error('Invalid credentials');
-    state.user = { email };
+    state.user = {
+      email,
+      username: record.username,
+      address: record.address,
+      emergencyContactName: record.emergencyContactName || '',
+      emergencyContactPhone: record.emergencyContactPhone || ''
+    };
     state.role = record.role;
     state.token = `demo_${Date.now()}`;
     save(AUTH_KEY, state);
@@ -51,5 +64,42 @@ export function useAuth(){
     save(AUTH_KEY, state);
   }
 
-  return { state, isAuthed, role, register, login, logout };
+  async function updateUserInfo({ username, address, emergencyContactName, emergencyContactPhone, currentPassword, newPassword }) {
+    if (!state.user) throw new Error('User not authenticated');
+
+    const users = load(USERS_KEY, {});
+    const userRecord = users[state.user.email];
+
+    if (!userRecord) throw new Error('User not found');
+
+    // If changing password, verify current password
+    if (newPassword) {
+      if (!currentPassword) throw new Error('Current password required to change password');
+      const currentHash = await sha256(currentPassword);
+      if (currentHash !== userRecord.hash) throw new Error('Current password incorrect');
+      userRecord.hash = await sha256(newPassword);
+    }
+
+    // Update user info
+    userRecord.username = username;
+    userRecord.address = address;
+    userRecord.emergencyContactName = emergencyContactName || '';
+    userRecord.emergencyContactPhone = emergencyContactPhone || '';
+
+    // Update local storage
+    save(USERS_KEY, users);
+
+    // Update current state
+    state.user = {
+      email: state.user.email,
+      username,
+      address,
+      emergencyContactName: emergencyContactName || '',
+      emergencyContactPhone: emergencyContactPhone || ''
+    };
+
+    save(AUTH_KEY, state);
+  }
+
+  return { state, isAuthed, role, register, login, logout, updateUserInfo };
 }

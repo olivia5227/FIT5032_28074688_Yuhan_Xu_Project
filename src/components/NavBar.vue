@@ -126,6 +126,7 @@ onUnmounted(() => {
                 <template v-if="role === 'user'">
                   <RouterLink to="/reviews" class="dropdown-item">Reviews</RouterLink>
                   <RouterLink to="/my-reviews" class="dropdown-item">My Reviews</RouterLink>
+                  <RouterLink to="/my-account" class="dropdown-item">My Account</RouterLink>
                 </template>
 
                 <!-- ADMIN MENU -->

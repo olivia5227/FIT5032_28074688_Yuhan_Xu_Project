@@ -8,6 +8,7 @@ import Results  from '../views/Results.vue';        // Result View (history)
 import Login    from '../views/auth/Login.vue';
 import Register from '../views/auth/Register.vue';
 import Admin    from '../views/Admin.vue';
+import MyAccount from '../views/MyAccount.vue';
 
 import Reviews       from '../views/Reviews.vue';        // user rating form
 import MyReviews     from '../views/MyReviews.vue';      // user-only list
@@ -23,6 +24,7 @@ const routes = [
   { path: '/results',        name: 'Results',       component: Results,      meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/reviews',        name: 'Reviews',       component: Reviews,      meta: { requiresAuth: true, roles: ['user'] } },
   { path: '/my-reviews',     name: 'MyReviews',     component: MyReviews,    meta: { requiresAuth: true, roles: ['user'] } },
+  { path: '/my-account',     name: 'MyAccount',     component: MyAccount,    meta: { requiresAuth: true, roles: ['user'] } },
   { path: '/reviews-admin',  name: 'ReviewsAdmin',  component: ReviewsAdmin, meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/admin',          name: 'Admin',         component: Admin,        meta: { requiresAuth: true, roles: ['admin'] } },
 
