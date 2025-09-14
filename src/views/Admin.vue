@@ -81,26 +81,25 @@ const moodDistribution = computed(() => {
   };
 });
 
-// Age group distribution data (using anonymized stats)
-const ageGroupData = computed(() => {
-  const ageGroups = historyStats.value.ageGroups || { '12-16': 0, '17-21': 0, '22-25': 0 };
+// Mood line chart data (using anonymized stats)
+const moodLineData = computed(() => {
+  const moodCounts = historyStats.value.moodDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
 
   return {
-    labels: ['12-16 years', '17-21 years', '22-25 years'],
+    labels: ['Very Low', 'Low', 'OK', 'Good', 'Great'],
     datasets: [{
-      label: 'Number of Users',
-      data: [ageGroups['12-16'], ageGroups['17-21'], ageGroups['22-25']],
-      backgroundColor: [
-        '#3b82f6',
-        '#8b5cf6',
-        '#06b6d4'
-      ],
-      borderColor: [
-        '#2563eb',
-        '#7c3aed',
-        '#0891b2'
-      ],
-      borderWidth: 2,
+      label: 'Number of People',
+      data: [moodCounts[1], moodCounts[2], moodCounts[3], moodCounts[4], moodCounts[5]],
+      borderColor: '#3b82f6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      borderWidth: 3,
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#3b82f6',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: 6,
+      pointHoverRadius: 8,
     }]
   };
 });
@@ -139,13 +138,13 @@ const moodChartOptions = {
   }
 };
 
-const ageChartOptions = {
+const moodLineChartOptions = {
   ...chartOptions,
   plugins: {
     ...chartOptions.plugins,
     title: {
       display: true,
-      text: 'Age Group Distribution'
+      text: 'Mood Distribution Trend'
     }
   },
   scales: {
@@ -153,13 +152,13 @@ const ageChartOptions = {
       beginAtZero: true,
       title: {
         display: true,
-        text: 'Number of Users'
+        text: 'Number of People'
       }
     },
     x: {
       title: {
         display: true,
-        text: 'Age Groups'
+        text: 'Mood Level'
       }
     }
   }
@@ -190,9 +189,9 @@ onMounted(() => {
         <Bar :data="moodDistribution" :options="moodChartOptions" />
       </div>
 
-      <!-- Age Group Distribution Chart -->
+      <!-- Mood Line Chart -->
       <div class="card">
-        <Bar :data="ageGroupData" :options="ageChartOptions" />
+        <Line :data="moodLineData" :options="moodLineChartOptions" />
       </div>
     </div>
 
