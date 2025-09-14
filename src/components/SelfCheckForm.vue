@@ -71,7 +71,7 @@ const result = computed(() => {
   if (form.sleepHours < 7) tips.push('Try a regular sleep routine (aim 8–9h).')
   if (form.mood <= 2) tips.push('Consider a short breathing exercise.')
   if (form.mood >= 4) tips.push('Great job! Keep up helpful habits.')
-  if (!tips.length) tips.push('Keep checking in with yourself ❤️')
+  if (!tips.length) tips.push('Keep checking in with yourself')
   return tips
 })
 

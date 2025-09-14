@@ -47,7 +47,7 @@ function fmt(ts){ try{ return new Date(ts).toLocaleString(); } catch { return ts
           <template v-if="editingId === r.id">
             <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
               <select class="input" style="max-width:120px" v-model.number="editRating">
-                <option v-for="n in [5,4,3,2,1]" :key="n" :value="n">{{ n }} ★</option>
+                <option v-for="n in [5,4,3,2,1]" :key="n" :value="n">{{ n }} stars</option>
               </select>
               <textarea class="input" v-model.trim="editComment" maxlength="300" style="flex:1" />
             </div>
@@ -58,7 +58,7 @@ function fmt(ts){ try{ return new Date(ts).toLocaleString(); } catch { return ts
           </template>
 
           <template v-else>
-            <strong>{{ r.rating }} ★</strong>
+            <strong>{{ r.rating }} stars</strong>
             <span class="helper"> • {{ r.user }} • {{ fmt(r.ts) }}</span>
             <p v-if="r.comment" style="margin:.5rem 0 0">{{ r.comment }}</p>
             <div style="display:flex;gap:.5rem;margin-top:.6rem">

@@ -58,7 +58,7 @@ const moodDistribution = computed(() => {
   const moodCounts = historyStats.value.moodDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
 
   return {
-    labels: ['Very Low 😞', 'Low 🙁', 'OK 🙂', 'Good 😃', 'Great 🤩'],
+    labels: ['Very Low', 'Low', 'OK', 'Good', 'Great'],
     datasets: [{
       label: 'Number of People',
       data: [moodCounts[1], moodCounts[2], moodCounts[3], moodCounts[4], moodCounts[5]],

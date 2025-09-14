@@ -94,11 +94,11 @@ function formatDate(timestamp) {
 
 function getMoodText(mood) {
   const map = {
-    1: 'Very low 😞',
-    2: 'Low 🙁',
-    3: 'OK 🙂',
-    4: 'Good 😃',
-    5: 'Great 🤩'
+    1: 'Very low',
+    2: 'Low',
+    3: 'OK',
+    4: 'Good',
+    5: 'Great'
   };
   return map[Number(mood)] || mood;
 }

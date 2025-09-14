@@ -17,7 +17,7 @@ function fmt(ts){ try{ return new Date(ts).toLocaleString(); } catch { return ts
     <div v-else class="grid">
       <div v-for="r in list" :key="r.id" style="grid-column:span 12">
         <article class="card">
-          <strong>{{ r.rating }} ★</strong>
+          <strong>{{ r.rating }} stars</strong>
           <span class="helper"> • {{ r.user }} • {{ fmt(r.ts) }}</span>
           <p v-if="r.comment" style="margin:.5rem 0 0">{{ r.comment }}</p>
         </article>

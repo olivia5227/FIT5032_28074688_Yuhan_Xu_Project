@@ -43,7 +43,7 @@ function submit(){
       <h3 style="margin-top:0">Leave a rating</h3>
       <label class="helper">Rating</label>
       <select class="input" v-model.number="rating" aria-label="rating 1-5">
-        <option v-for="n in [5,4,3,2,1]" :key="n" :value="n">{{ n }} ★</option>
+        <option v-for="n in [5,4,3,2,1]" :key="n" :value="n">{{ n }} stars</option>
       </select>
 
       <label class="helper" style="margin-top:.5rem">Feedback (optional)</label>

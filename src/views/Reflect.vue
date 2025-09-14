@@ -14,7 +14,7 @@ const savedAt = computed(() =>
 const moodLabel = computed(() => {
   if (!lastPayload.value) return '';
   const m = Number(lastPayload.value.mood);
-  const map = { 1: 'Very low 😞', 2: 'Low 🙁', 3: 'OK 🙂', 4: 'Good 😃', 5: 'Great 🤩' };
+  const map = { 1: 'Very low', 2: 'Low', 3: 'OK', 4: 'Good', 5: 'Great' };
   return map[m] ?? m;
 });
 
