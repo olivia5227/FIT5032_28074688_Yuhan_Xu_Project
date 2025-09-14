@@ -180,12 +180,6 @@ This document outlines the security measures implemented in the Youth Wellbeing 
 - Regular security audits
 - Dependency vulnerability scanning
 
-## Security Contact
 
-For security-related issues or questions about this implementation, please refer to the development team or security documentation.
-
----
-
-**Last Updated**: January 2025
 **Security Review**: Basic web application security measures implemented
 **Compliance**: Follows OWASP basic security guidelines for client-side applications
