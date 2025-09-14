@@ -4,6 +4,7 @@
 //  - submitted(payload) when valid submit
 //  - cleared() when Reset button is pressed
 import { reactive, computed } from 'vue'
+import { sanitizeTextInput, isValidEmail } from '../utils/security'
 
 const form = reactive({
   name: '',
@@ -41,8 +42,7 @@ const errors = computed(() => {
 
   // Email: optional but must match pattern if present
   if (form.email) {
-    const re = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
-    if (!re.test(form.email)) e.email = 'Please enter a valid email.'
+    if (!isValidEmail(form.email)) e.email = 'Please enter a valid email.'
   }
 
   // Mood: 1..5
@@ -79,8 +79,20 @@ const emit = defineEmits(['submitted', 'cleared'])
 
 function submit() {
   if (!valid.value) return
+
+  // Sanitize all text inputs before submission
+  const sanitizedForm = {
+    name: sanitizeTextInput(form.name),
+    age: form.age,
+    email: form.email ? sanitizeTextInput(form.email) : '',
+    mood: form.mood,
+    sleepHours: form.sleepHours,
+    notes: sanitizeTextInput(form.notes),
+    agree: form.agree
+  }
+
   // Emit payload - suggestions included
-  emit('submitted', { ...form, suggestions: result.value })
+  emit('submitted', { ...sanitizedForm, suggestions: result.value })
 }
 
 function resetForm() {

@@ -4,7 +4,7 @@
       © 2025 Youth Wellbeing. Built with Vue 3.
     </div>
     <div style="grid-column:span 6;text-align:right">
-      <a href="https://www.esafety.gov.au/" target="_blank">eSafety guidance</a>
+      <a href="https://www.esafety.gov.au/" target="_blank" rel="noopener noreferrer">eSafety guidance</a>
     </div>
   </div>
 </template>

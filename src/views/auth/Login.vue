@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuth } from '../../store/auth';
+import { checkRateLimit, sanitizeTextInput } from '../../utils/security';
 
 const usernameOrEmail = ref('');
 const password = ref('');
@@ -42,11 +43,27 @@ async function onSubmit(){
   if (!validateForm()) {
     return;
   }
-  
+
+  // Check rate limiting to prevent brute force attacks
+  const rateLimitKey = `login:${usernameOrEmail.value.trim().toLowerCase()}`;
+  const rateLimit = checkRateLimit(rateLimitKey, 5, 15 * 60 * 1000); // 5 attempts per 15 minutes
+
+  if (!rateLimit.isAllowed) {
+    const resetMinutes = Math.ceil((rateLimit.resetTime - Date.now()) / (60 * 1000));
+    errors.value.general = `Too many login attempts. Please try again in ${resetMinutes} minute(s).`;
+    return;
+  }
+
   try {
-    await login({ email: usernameOrEmail.value.trim(), password: password.value });
+    // Sanitize inputs before sending to login function
+    const sanitizedEmail = sanitizeTextInput(usernameOrEmail.value.trim());
+
+    await login({ email: sanitizedEmail, password: password.value });
     router.push(route.query.redirect || '/');
   } catch (e) {
+    // Add failed attempt to rate limit tracking
+    rateLimit.addAttempt();
+
     errors.value.general = e.message || 'Login failed';
   }
 }

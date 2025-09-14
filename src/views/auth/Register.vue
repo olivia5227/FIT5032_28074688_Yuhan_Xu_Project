@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '../../store/auth';
+import { sanitizeTextInput, isValidEmail, validatePasswordStrength, isValidAustralianPhone } from '../../utils/security';
 
 // Required fields
 const username = ref('');
@@ -65,31 +66,16 @@ function validateEmail(value) {
   if (!value) {
     return 'Email is required';
   }
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(value)) {
+  if (!isValidEmail(value)) {
     return 'Please enter a valid email address';
   }
   return null;
 }
 
 function validatePassword(value) {
-  if (!value) {
-    return 'Password is required';
-  }
-  if (value.length < 8) {
-    return 'Password must be at least 8 characters long';
-  }
-  if (!/(?=.*[a-z])/.test(value)) {
-    return 'Password must contain at least one lowercase letter';
-  }
-  if (!/(?=.*[A-Z])/.test(value)) {
-    return 'Password must contain at least one uppercase letter';
-  }
-  if (!/(?=.*\d)/.test(value)) {
-    return 'Password must contain at least one number';
-  }
-  if (!/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(value)) {
-    return 'Password must contain at least one special character';
+  const validation = validatePasswordStrength(value);
+  if (!validation.isValid) {
+    return validation.errors[0]; // Return first error
   }
   return null;
 }
@@ -117,7 +103,7 @@ function validateAustralianAddress(value) {
 }
 
 function validatePhoneNumber(value) {
-  if (value && !/^(\+61|0)[2-9]\d{8}$/.test(value.replace(/\s/g, ''))) {
+  if (value && !isValidAustralianPhone(value)) {
     return 'Please enter a valid Australian phone number';
   }
   return null;
@@ -158,20 +144,21 @@ async function onSubmit() {
   }
   
   try {
+    // Sanitize all text inputs before registration
     const registrationData = {
-      username: username.value.trim(),
-      email: email.value.trim(),
-      password: password.value,
-      address: address.value.trim(),
+      username: sanitizeTextInput(username.value.trim()),
+      email: sanitizeTextInput(email.value.trim()),
+      password: password.value, // Don't sanitize password as it may remove valid special characters
+      address: sanitizeTextInput(address.value.trim()),
       role: role.value
     };
-    
+
     // Only include emergency contact for users
     if (role.value === 'user') {
-      registrationData.emergencyContactName = emergencyContactName.value.trim();
-      registrationData.emergencyContactPhone = emergencyContactPhone.value.trim();
+      registrationData.emergencyContactName = sanitizeTextInput(emergencyContactName.value.trim());
+      registrationData.emergencyContactPhone = sanitizeTextInput(emergencyContactPhone.value.trim());
     }
-    
+
     await register(registrationData);
     router.push('/');
   } catch (e) {
