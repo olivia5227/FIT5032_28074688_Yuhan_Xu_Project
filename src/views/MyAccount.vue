@@ -1103,7 +1103,7 @@ function togglePasswordChange() {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fit, minmax(350px, 350px));
-  justify-content: center;
+  justify-content: start;
 }
 
 .history-card {
@@ -1277,7 +1277,7 @@ function togglePasswordChange() {
 @media (max-width: 1024px) and (min-width: 641px) {
   .history-grid {
     grid-template-columns: repeat(auto-fit, minmax(350px, 350px));
-    justify-content: center;
+    justify-content: start;
   }
 
   .history-card {
@@ -1324,7 +1324,7 @@ function togglePasswordChange() {
 
   .history-grid {
     grid-template-columns: 1fr;
-    justify-content: center;
+    justify-content: start;
   }
 
   .history-card {
