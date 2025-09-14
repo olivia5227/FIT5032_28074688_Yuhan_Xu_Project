@@ -32,6 +32,44 @@ export function removeEntry(id) {
   return list;
 }
 
+// User-specific deletion (hides entries for user without affecting admin stats)
+const USER_DELETED_KEY = 'user_deleted_entries_v1';
+
+export function getUserDeletedEntries(userEmail) {
+  try {
+    const deleted = JSON.parse(localStorage.getItem(USER_DELETED_KEY) || '{}');
+    return deleted[userEmail] || [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveUserDeletedEntries(userEmail, deletedIds) {
+  try {
+    const deleted = JSON.parse(localStorage.getItem(USER_DELETED_KEY) || '{}');
+    deleted[userEmail] = deletedIds;
+    localStorage.setItem(USER_DELETED_KEY, JSON.stringify(deleted));
+  } catch {
+    // Fail silently
+  }
+}
+
+export function hideEntryForUser(entryId, userEmail) {
+  const deletedIds = getUserDeletedEntries(userEmail);
+  if (!deletedIds.includes(entryId)) {
+    deletedIds.push(entryId);
+    saveUserDeletedEntries(userEmail, deletedIds);
+  }
+}
+
+export function loadUserHistoryFiltered(userEmail) {
+  if (!userEmail) return [];
+  const allHistory = loadHistory();
+  const userEntries = allHistory.filter(entry => entry.email === userEmail);
+  const deletedIds = getUserDeletedEntries(userEmail);
+  return userEntries.filter(entry => !deletedIds.includes(entry.id));
+}
+
 export function makeId() {
   if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
   return `id_${Date.now()}_${Math.random().toString(36).slice(2)}`;

@@ -43,4 +43,41 @@ export function reviewsByUser(email) {
   return list.filter(r => r.user === email);
 }
 
+// User-specific review hiding (similar to history entries)
+const USER_DELETED_REVIEWS_KEY = 'user_deleted_reviews_v1';
+
+export function getUserDeletedReviews(userEmail) {
+  try {
+    const deleted = JSON.parse(localStorage.getItem(USER_DELETED_REVIEWS_KEY) || '{}');
+    return deleted[userEmail] || [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveUserDeletedReviews(userEmail, deletedIds) {
+  try {
+    const deleted = JSON.parse(localStorage.getItem(USER_DELETED_REVIEWS_KEY) || '{}');
+    deleted[userEmail] = deletedIds;
+    localStorage.setItem(USER_DELETED_REVIEWS_KEY, JSON.stringify(deleted));
+  } catch {
+    // Fail silently
+  }
+}
+
+export function hideReviewForUser(reviewId, userEmail) {
+  const deletedIds = getUserDeletedReviews(userEmail);
+  if (!deletedIds.includes(reviewId)) {
+    deletedIds.push(reviewId);
+    saveUserDeletedReviews(userEmail, deletedIds);
+  }
+}
+
+export function reviewsByUserFiltered(email) {
+  const list = loadReviews();
+  const userReviews = list.filter(r => r.user === email);
+  const deletedIds = getUserDeletedReviews(email);
+  return userReviews.filter(review => !deletedIds.includes(review.id));
+}
+
 function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }

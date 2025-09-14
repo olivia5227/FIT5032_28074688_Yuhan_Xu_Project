@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useAuth } from '../store/auth';
-import { loadUserHistory, removeEntry } from '../utils/history';
+import { loadUserHistoryFiltered, hideEntryForUser, getUserDeletedEntries, saveUserDeletedEntries } from '../utils/history';
 
 const { state, updateUserInfo } = useAuth();
 
@@ -108,7 +108,7 @@ onUnmounted(() => {
 
 function loadHistory() {
   if (state.user?.email) {
-    userHistory.value = loadUserHistory(state.user.email);
+    userHistory.value = loadUserHistoryFiltered(state.user.email);
   }
 }
 
@@ -117,23 +117,31 @@ function refreshHistory() {
 }
 
 function deleteEntry(entryId) {
-  if (confirm('Are you sure you want to delete this self-check entry? This action cannot be undone.')) {
-    removeEntry(entryId);
-    loadHistory(); // Refresh the history after deletion
+  if (confirm('Are you sure you want to delete this self-check entry? This will only hide it from your view.')) {
+    if (state.user?.email) {
+      hideEntryForUser(entryId, state.user.email);
+      loadHistory(); // Refresh the history after hiding
 
-    // Adjust current page if necessary
-    if (currentPage.value > totalPages.value) {
-      currentPage.value = Math.max(1, totalPages.value);
+      // Adjust current page if necessary
+      if (currentPage.value > totalPages.value) {
+        currentPage.value = Math.max(1, totalPages.value);
+      }
     }
   }
 }
 
 function clearAllHistory() {
-  if (confirm('Are you sure you want to delete ALL your self-check history? This action cannot be undone.')) {
-    // Remove all entries for current user
-    userHistory.value.forEach(entry => removeEntry(entry.id));
-    loadHistory(); // Refresh the history after deletion
-    currentPage.value = 1; // Reset to first page after clearing all
+  if (confirm('Are you sure you want to hide ALL your self-check history? This will only hide them from your view.')) {
+    if (state.user?.email) {
+      // Hide all current user entries
+      const currentDeletedIds = getUserDeletedEntries(state.user.email);
+      const allUserEntryIds = userHistory.value.map(entry => entry.id);
+      const newDeletedIds = [...new Set([...currentDeletedIds, ...allUserEntryIds])];
+
+      saveUserDeletedEntries(state.user.email, newDeletedIds);
+      loadHistory(); // Refresh the history after hiding all
+      currentPage.value = 1; // Reset to first page after clearing all
+    }
   }
 }
 
