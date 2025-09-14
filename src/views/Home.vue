@@ -205,27 +205,30 @@ onUnmounted(() => {
               </div>
             </div>
           </div>
-          
+
           <!-- Right: Title and description -->
           <div class="discover-right">
             <h2 class="discover-title">Discover Resources</h2>
-            
+
             <p class="discover-description">
               Explore our carefully curated collection of mental health and wellbeing resources, specifically designed for young people aged 12-25.
             </p>
-            
+
             <div class="discover-features">
               <p><strong>1. Practical Tools</strong> - Evidence-based strategies and supportive guidance to help you navigate life's challenges</p>
-              
+
               <p><strong>2. Key Areas</strong> - Managing stress, improving sleep quality, staying safe online, and adapting to major life changes</p>
-              
+
               <p><strong>3. Immediate Support</strong> - Bite-sized resources that offer actionable support when you need it most</p>
-              
+
               <p><strong>4. Personalized Tips</strong> - Click on any topic to discover techniques that can make a real difference in your daily life</p>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Back to top link for discover section -->
+      <a href="#hero" @click.prevent="scrollToHero" class="back-to-top">↑ back to top</a>
     </section>
 
     <!-- Divider Line -->
@@ -240,7 +243,7 @@ onUnmounted(() => {
         <p style="text-align:center; color:var(--muted); margin-bottom:2rem; font-size:1.1rem;">
           A friendly directory of local and online services. External links open in a new tab.
         </p>
-        
+
         <div class="services-grid">
           <article
             v-for="(svc, i) in services"
@@ -285,6 +288,9 @@ onUnmounted(() => {
           </article>
         </div>
       </div>
+
+      <!-- Back to top link for refer section -->
+      <a href="#hero" @click.prevent="scrollToHero" class="back-to-top">↑ back to top</a>
     </section>
   </div>
 </template>
@@ -658,10 +664,43 @@ html {
   }
 }
 
+/* Back to top link styling */
+.back-to-top {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  opacity: 0.7;
+}
+
+.back-to-top:hover {
+  color: var(--brand-600);
+  background: rgba(255, 255, 255, 0.95);
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 /* Optional: slightly smaller sections on very small screens */
 @media (max-width: 640px) {
   .snap-section {
     min-height: 95vh;
+  }
+
+  .back-to-top {
+    bottom: 15px;
+    right: 15px;
+    font-size: 0.8rem;
+    padding: 6px 10px;
   }
 }
 </style>
