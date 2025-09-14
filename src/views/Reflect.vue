@@ -2,7 +2,9 @@
 import { ref, computed } from 'vue';
 import SelfCheckForm from '../components/SelfCheckForm.vue';
 import { addEntry, makeId } from '../utils/history';
+import { useAuth } from '../store/auth';
 
+const { state } = useAuth();
 const lastPayload = ref(null);
 
 const savedAt = computed(() =>
@@ -17,7 +19,15 @@ const moodLabel = computed(() => {
 });
 
 function onSubmitted(payload) {
-  const entry = { id: makeId(), ts: Date.now(), ...payload };
+  // Always use the current logged-in user's email for history tracking
+  const userEmail = state.user?.email;
+  const entry = {
+    id: makeId(),
+    ts: Date.now(),
+    ...payload,
+    // Override with current user's email for proper history tracking
+    email: userEmail || payload.email
+  };
   addEntry(entry);           // persist to LocalStorage
   lastPayload.value = entry; // show summary below the form
 }

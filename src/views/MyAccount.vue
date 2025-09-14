@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useAuth } from '../store/auth';
 import { loadUserHistory } from '../utils/history';
 
@@ -37,6 +37,9 @@ const sortedHistory = computed(() => {
   }
 });
 
+// Listen for localStorage changes to refresh history when new self-check is submitted
+let storageListener;
+
 // Load user info when component mounts
 onMounted(() => {
   if (state.user) {
@@ -49,12 +52,31 @@ onMounted(() => {
     // Load user's self-check history
     loadHistory();
   }
+
+  // Listen for localStorage changes (when user submits new self-check)
+  storageListener = (e) => {
+    if (e.key === 'reflect_history_v1' && state.user?.email) {
+      loadHistory(); // Refresh history when localStorage changes
+    }
+  };
+  window.addEventListener('storage', storageListener);
+});
+
+// Clean up event listener when component unmounts
+onUnmounted(() => {
+  if (storageListener) {
+    window.removeEventListener('storage', storageListener);
+  }
 });
 
 function loadHistory() {
   if (state.user?.email) {
     userHistory.value = loadUserHistory(state.user.email);
   }
+}
+
+function refreshHistory() {
+  loadHistory();
 }
 
 function toggleSortOrder() {
@@ -424,6 +446,12 @@ function togglePasswordChange() {
           </svg>
           {{ sortOrder === 'newest' ? 'Newest First' : 'Oldest First' }}
         </button>
+        <button class="refresh-button" @click="refreshHistory" title="Refresh History">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z"/>
+          </svg>
+          Refresh
+        </button>
       </div>
 
       <!-- History Cards -->
@@ -473,6 +501,12 @@ function togglePasswordChange() {
       <div class="empty-history-content">
         <h3>No Self-Check History</h3>
         <p class="helper">Complete a self-check on the <RouterLink to="/reflect" class="link">Reflect</RouterLink> page to see your history here.</p>
+        <button class="refresh-button" @click="refreshHistory" style="margin-top: 1rem;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z"/>
+          </svg>
+          Check for New History
+        </button>
       </div>
     </div>
   </section>
@@ -693,6 +727,8 @@ function togglePasswordChange() {
 .sort-control {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
@@ -724,6 +760,31 @@ function togglePasswordChange() {
 
 .sort-icon.rotate {
   transform: rotate(180deg);
+}
+
+.refresh-button {
+  background: transparent;
+  border: 2px solid var(--border);
+  color: var(--text);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.refresh-button:hover {
+  border-color: var(--brand-600);
+  color: var(--brand-600);
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.refresh-button:active {
+  transform: scale(0.98);
 }
 
 .history-grid {

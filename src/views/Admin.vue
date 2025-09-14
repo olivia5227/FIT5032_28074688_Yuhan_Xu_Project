@@ -13,13 +13,14 @@ import {
   PointElement
 } from 'chart.js';
 import { loadReviews } from '../utils/reviews';
-import { loadHistory } from '../utils/history';
+import { getAnonymizedStats } from '../utils/history';
+import { useAuth } from '../store/auth';
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, LineElement, PointElement);
 
 const reviews = ref([]);
-const history = ref([]);
+const historyStats = ref({});
 
 // Rating distribution data
 const ratingDistribution = computed(() => {
@@ -52,12 +53,9 @@ const ratingDistribution = computed(() => {
   };
 });
 
-// Mood distribution data
+// Mood distribution data (using anonymized stats)
 const moodDistribution = computed(() => {
-  const moodCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-  history.value.forEach(entry => {
-    moodCounts[entry.mood] = (moodCounts[entry.mood] || 0) + 1;
-  });
+  const moodCounts = historyStats.value.moodDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
 
   return {
     labels: ['Very Low 😞', 'Low 🙁', 'OK 🙂', 'Good 😃', 'Great 🤩'],
@@ -83,36 +81,26 @@ const moodDistribution = computed(() => {
   };
 });
 
-// Sleep time vs mood line chart data
-const sleepMoodData = computed(() => {
-  // Group data by sleep hours and calculate average mood
-  const sleepGroups = {};
-
-  history.value.forEach(entry => {
-    const sleepHours = Math.round(entry.sleepHours);
-    if (!sleepGroups[sleepHours]) {
-      sleepGroups[sleepHours] = { totalMood: 0, count: 0 };
-    }
-    sleepGroups[sleepHours].totalMood += entry.mood;
-    sleepGroups[sleepHours].count += 1;
-  });
-
-  // Convert to arrays for chart
-  const sleepHours = Object.keys(sleepGroups).sort((a, b) => Number(a) - Number(b));
-  const avgMoods = sleepHours.map(hours =>
-    sleepGroups[hours].totalMood / sleepGroups[hours].count
-  );
+// Age group distribution data (using anonymized stats)
+const ageGroupData = computed(() => {
+  const ageGroups = historyStats.value.ageGroups || { '12-16': 0, '17-21': 0, '22-25': 0 };
 
   return {
-    labels: sleepHours.map(h => `${h} hrs`),
+    labels: ['12-16 years', '17-21 years', '22-25 years'],
     datasets: [{
-      label: 'Average Mood',
-      data: avgMoods,
-      borderColor: '#3b82f6',
-      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      label: 'Number of Users',
+      data: [ageGroups['12-16'], ageGroups['17-21'], ageGroups['22-25']],
+      backgroundColor: [
+        '#3b82f6',
+        '#8b5cf6',
+        '#06b6d4'
+      ],
+      borderColor: [
+        '#2563eb',
+        '#7c3aed',
+        '#0891b2'
+      ],
       borderWidth: 2,
-      fill: true,
-      tension: 0.4
     }]
   };
 });
@@ -151,28 +139,27 @@ const moodChartOptions = {
   }
 };
 
-const sleepChartOptions = {
+const ageChartOptions = {
   ...chartOptions,
   plugins: {
     ...chartOptions.plugins,
     title: {
       display: true,
-      text: 'Average Mood by Sleep Hours'
+      text: 'Age Group Distribution'
     }
   },
   scales: {
     y: {
       beginAtZero: true,
-      max: 5,
       title: {
         display: true,
-        text: 'Average Mood Score'
+        text: 'Number of Users'
       }
     },
     x: {
       title: {
         display: true,
-        text: 'Sleep Hours'
+        text: 'Age Groups'
       }
     }
   }
@@ -180,7 +167,7 @@ const sleepChartOptions = {
 
 onMounted(() => {
   reviews.value = loadReviews();
-  history.value = loadHistory();
+  historyStats.value = getAnonymizedStats();
 });
 </script>
 
@@ -203,9 +190,9 @@ onMounted(() => {
         <Bar :data="moodDistribution" :options="moodChartOptions" />
       </div>
 
-      <!-- Sleep vs Mood Line Chart -->
+      <!-- Age Group Distribution Chart -->
       <div class="card">
-        <Line :data="sleepMoodData" :options="sleepChartOptions" />
+        <Bar :data="ageGroupData" :options="ageChartOptions" />
       </div>
     </div>
 
@@ -217,7 +204,7 @@ onMounted(() => {
           <strong>Total Reviews:</strong> {{ reviews.length }}
         </div>
         <div>
-          <strong>Total Self-Check Submissions:</strong> {{ history.length }}
+          <strong>Total Self-Check Submissions:</strong> {{ historyStats.totalSubmissions || 0 }}
         </div>
         <div>
           <strong>Average Rating:</strong>
@@ -225,7 +212,11 @@ onMounted(() => {
         </div>
         <div>
           <strong>Average Mood:</strong>
-          {{ history.length > 0 ? (history.reduce((sum, h) => sum + h.mood, 0) / history.length).toFixed(2) : 'N/A' }}
+          {{ historyStats.averageMood ? historyStats.averageMood.toFixed(2) : 'N/A' }}
+        </div>
+        <div>
+          <strong>Average Sleep:</strong>
+          {{ historyStats.averageSleep ? historyStats.averageSleep.toFixed(1) + 'h' : 'N/A' }}
         </div>
       </div>
     </div>
