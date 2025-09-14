@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useAuth } from '../store/auth';
-import { loadUserHistory } from '../utils/history';
+import { loadUserHistory, removeEntry } from '../utils/history';
 
 const { state, updateUserInfo } = useAuth();
 
@@ -28,13 +28,50 @@ const successMessage = ref('');
 const userHistory = ref([]);
 const sortOrder = ref('newest'); // 'newest' or 'oldest'
 
-// Computed sorted history
+// Pagination state
+const currentPage = ref(1);
+const itemsPerPage = 4;
+
+// Computed sorted history (all items)
 const sortedHistory = computed(() => {
   if (sortOrder.value === 'newest') {
     return [...userHistory.value].sort((a, b) => b.ts - a.ts);
   } else {
     return [...userHistory.value].sort((a, b) => a.ts - b.ts);
   }
+});
+
+// Pagination computed properties
+const totalPages = computed(() => {
+  return Math.max(1, Math.ceil(sortedHistory.value.length / itemsPerPage));
+});
+
+const paginatedHistory = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return sortedHistory.value.slice(start, end);
+});
+
+// Visible page numbers (for pagination display optimization)
+const visiblePages = computed(() => {
+  const total = totalPages.value;
+  const current = currentPage.value;
+  const maxVisible = 5; // Show max 5 page buttons
+
+  if (total <= maxVisible) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const halfVisible = Math.floor(maxVisible / 2);
+  let start = Math.max(1, current - halfVisible);
+  let end = Math.min(total, start + maxVisible - 1);
+
+  // Adjust start if we're near the end
+  if (end - start + 1 < maxVisible) {
+    start = Math.max(1, end - maxVisible + 1);
+  }
+
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 
 // Listen for localStorage changes to refresh history when new self-check is submitted
@@ -79,8 +116,49 @@ function refreshHistory() {
   loadHistory();
 }
 
+function deleteEntry(entryId) {
+  if (confirm('Are you sure you want to delete this self-check entry? This action cannot be undone.')) {
+    removeEntry(entryId);
+    loadHistory(); // Refresh the history after deletion
+
+    // Adjust current page if necessary
+    if (currentPage.value > totalPages.value) {
+      currentPage.value = Math.max(1, totalPages.value);
+    }
+  }
+}
+
+function clearAllHistory() {
+  if (confirm('Are you sure you want to delete ALL your self-check history? This action cannot be undone.')) {
+    // Remove all entries for current user
+    userHistory.value.forEach(entry => removeEntry(entry.id));
+    loadHistory(); // Refresh the history after deletion
+    currentPage.value = 1; // Reset to first page after clearing all
+  }
+}
+
 function toggleSortOrder() {
   sortOrder.value = sortOrder.value === 'newest' ? 'oldest' : 'newest';
+  currentPage.value = 1; // Reset to first page when changing sort order
+}
+
+// Pagination functions
+function goToPage(page) {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
+}
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+  }
+}
+
+function previousPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
 }
 
 // Helper functions for formatting
@@ -452,11 +530,17 @@ function togglePasswordChange() {
           </svg>
           Refresh
         </button>
+        <button class="clear-all-btn" @click="clearAllHistory" title="Delete All History">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+          </svg>
+          Clear All
+        </button>
       </div>
 
       <!-- History Cards -->
       <div class="history-grid">
-        <div v-for="entry in sortedHistory" :key="entry.id" class="history-card card">
+        <div v-for="entry in paginatedHistory" :key="entry.id" class="history-card card">
           <div class="history-header">
             <div class="history-info">
               <h4 class="history-title">Self-Check Results</h4>
@@ -484,6 +568,16 @@ function togglePasswordChange() {
             </div>
           </div>
 
+          <div class="history-actions">
+            <button class="delete-btn" @click="deleteEntry(entry.id)" title="Delete this entry">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M5.5 1a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v1H14a.5.5 0 0 1 0 1v11.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V3a.5.5 0 0 1 0-1h2.5V1zM3 3v10.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V3H3z"/>
+                <path d="M6.5 5.5a.5.5 0 0 1 1 0v6a.5.5 0 0 1-1 0v-6zm3 0a.5.5 0 0 1 1 0v6a.5.5 0 0 1-1 0v-6z"/>
+              </svg>
+              Delete
+            </button>
+          </div>
+
           <div class="suggestions-section" v-if="entry.suggestions && entry.suggestions.length > 0">
             <h5 class="suggestions-title">Suggestions</h5>
             <ul class="suggestions-list">
@@ -492,6 +586,68 @@ function togglePasswordChange() {
               </li>
             </ul>
           </div>
+        </div>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="pagination-container" v-if="totalPages > 1">
+        <div class="pagination-info">
+          Page {{ currentPage }} of {{ totalPages }} ({{ sortedHistory.length }} total entries)
+        </div>
+        <div class="pagination-controls">
+          <button
+            class="pagination-btn"
+            @click="previousPage"
+            :disabled="currentPage <= 1"
+            title="Previous page"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+            </svg>
+            Previous
+          </button>
+
+          <div class="page-numbers">
+            <button
+              v-if="visiblePages[0] > 1"
+              class="page-btn"
+              @click="goToPage(1)"
+            >
+              1
+            </button>
+            <span v-if="visiblePages[0] > 2" class="page-ellipsis">...</span>
+
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              class="page-btn"
+              :class="{ active: page === currentPage }"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+
+            <span v-if="visiblePages[visiblePages.length - 1] < totalPages - 1" class="page-ellipsis">...</span>
+            <button
+              v-if="visiblePages[visiblePages.length - 1] < totalPages"
+              class="page-btn"
+              @click="goToPage(totalPages)"
+            >
+              {{ totalPages }}
+            </button>
+          </div>
+
+          <button
+            class="pagination-btn"
+            @click="nextPage"
+            :disabled="currentPage >= totalPages"
+            title="Next page"
+          >
+            Next
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -730,6 +886,7 @@ function togglePasswordChange() {
   align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
 .sort-button {
@@ -785,6 +942,161 @@ function togglePasswordChange() {
 
 .refresh-button:active {
   transform: scale(0.98);
+}
+
+.clear-all-btn {
+  background: transparent;
+  border: 2px solid #ef4444;
+  color: #ef4444;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clear-all-btn:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.clear-all-btn:active {
+  transform: scale(0.98);
+}
+
+.history-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border);
+  margin-top: 1rem;
+}
+
+.delete-btn {
+  background: transparent;
+  border: 2px solid #ef4444;
+  color: #ef4444;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.delete-btn:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.delete-btn:active {
+  transform: scale(0.98);
+}
+
+/* Pagination Styles */
+.pagination-container {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pagination-info {
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pagination-btn {
+  background: transparent;
+  border: 2px solid var(--border);
+  color: var(--text);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  border-color: var(--brand-600);
+  color: var(--brand-600);
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--border-light);
+  color: var(--muted);
+}
+
+.page-numbers {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.page-btn {
+  background: transparent;
+  border: 2px solid var(--border);
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 40px;
+}
+
+.page-btn:hover {
+  border-color: var(--brand-600);
+  color: var(--brand-600);
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.page-btn.active {
+  background: var(--brand-600);
+  border-color: var(--brand-600);
+  color: white;
+}
+
+.page-btn.active:hover {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.page-ellipsis {
+  color: var(--muted);
+  font-weight: 500;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
 }
 
 .history-grid {
@@ -1020,6 +1332,45 @@ function togglePasswordChange() {
 
   .empty-history {
     padding: 2rem 1rem;
+  }
+
+  .history-actions {
+    padding: 0.75rem 0;
+  }
+
+  .delete-btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .clear-all-btn {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.85rem;
+  }
+
+  .sort-control {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .pagination-controls {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .pagination-btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .page-btn {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.85rem;
+    min-width: 35px;
+  }
+
+  .pagination-info {
+    font-size: 0.85rem;
   }
 }
 </style>
