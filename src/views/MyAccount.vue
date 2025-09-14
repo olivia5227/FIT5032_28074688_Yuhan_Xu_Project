@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useAuth } from '../store/auth';
+import { loadUserHistory } from '../utils/history';
 
 const { state, updateUserInfo } = useAuth();
 
@@ -23,6 +24,19 @@ const isSaving = ref(false);
 const errors = ref({});
 const successMessage = ref('');
 
+// History state
+const userHistory = ref([]);
+const sortOrder = ref('newest'); // 'newest' or 'oldest'
+
+// Computed sorted history
+const sortedHistory = computed(() => {
+  if (sortOrder.value === 'newest') {
+    return [...userHistory.value].sort((a, b) => b.ts - a.ts);
+  } else {
+    return [...userHistory.value].sort((a, b) => a.ts - b.ts);
+  }
+});
+
 // Load user info when component mounts
 onMounted(() => {
   if (state.user) {
@@ -31,8 +45,41 @@ onMounted(() => {
     address.value = state.user.address || '';
     emergencyContactName.value = state.user.emergencyContactName || '';
     emergencyContactPhone.value = state.user.emergencyContactPhone || '';
+
+    // Load user's self-check history
+    loadHistory();
   }
 });
+
+function loadHistory() {
+  if (state.user?.email) {
+    userHistory.value = loadUserHistory(state.user.email);
+  }
+}
+
+function toggleSortOrder() {
+  sortOrder.value = sortOrder.value === 'newest' ? 'oldest' : 'newest';
+}
+
+// Helper functions for formatting
+function formatDate(timestamp) {
+  try {
+    return new Date(timestamp).toLocaleString();
+  } catch {
+    return timestamp;
+  }
+}
+
+function getMoodText(mood) {
+  const map = {
+    1: 'Very low 😞',
+    2: 'Low 🙁',
+    3: 'OK 🙂',
+    4: 'Good 😃',
+    5: 'Great 🤩'
+  };
+  return map[Number(mood)] || mood;
+}
 
 // Validation functions (same as Register.vue)
 function validateUsername(value) {
@@ -365,6 +412,69 @@ function togglePasswordChange() {
         </button>
       </div>
     </div>
+
+    <!-- Self-Check History Section -->
+    <div class="history-container" v-if="userHistory.length > 0">
+      <!-- Sort Control -->
+      <div class="sort-control">
+        <button class="sort-button" @click="toggleSortOrder">
+          <svg class="sort-icon" :class="{ 'rotate': sortOrder === 'oldest' }" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 3l4 4H4l4-4z"/>
+            <path d="M8 13l4-4H4l4 4z"/>
+          </svg>
+          {{ sortOrder === 'newest' ? 'Newest First' : 'Oldest First' }}
+        </button>
+      </div>
+
+      <!-- History Cards -->
+      <div class="history-grid">
+        <div v-for="entry in sortedHistory" :key="entry.id" class="history-card card">
+          <div class="history-header">
+            <div class="history-info">
+              <h4 class="history-title">Self-Check Results</h4>
+              <p class="history-date">{{ formatDate(entry.ts) }}</p>
+            </div>
+            <div class="mood-indicator" :class="`mood-${entry.mood}`">
+              {{ getMoodText(entry.mood) }}
+            </div>
+          </div>
+
+          <div class="history-details">
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Age:</span>
+                <span class="detail-value">{{ entry.age }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Sleep:</span>
+                <span class="detail-value">{{ entry.sleepHours }}h</span>
+              </div>
+              <div class="detail-item" v-if="entry.notes">
+                <span class="detail-label">Notes:</span>
+                <span class="detail-value">{{ entry.notes }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="suggestions-section" v-if="entry.suggestions && entry.suggestions.length > 0">
+            <h5 class="suggestions-title">Suggestions</h5>
+            <ul class="suggestions-list">
+              <li v-for="(suggestion, index) in entry.suggestions" :key="index" class="suggestion-item">
+                {{ suggestion }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty History State -->
+    <div class="empty-history card" v-else>
+      <div class="empty-history-content">
+        <h3>No Self-Check History</h3>
+        <p class="helper">Complete a self-check on the <RouterLink to="/reflect" class="link">Reflect</RouterLink> page to see your history here.</p>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -575,6 +685,218 @@ function togglePasswordChange() {
   cursor: not-allowed;
 }
 
+/* History Section Styles */
+.history-container {
+  margin-top: 2rem;
+}
+
+.sort-control {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.sort-button {
+  background: transparent;
+  border: 2px solid var(--border);
+  color: var(--text);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sort-button:hover {
+  border-color: var(--brand-600);
+  color: var(--brand-600);
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.sort-icon {
+  transition: transform 0.3s ease;
+  color: var(--muted);
+}
+
+.sort-icon.rotate {
+  transform: rotate(180deg);
+}
+
+.history-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+}
+
+.history-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.history-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(16, 78, 56, 0.12);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.history-info {
+  flex: 1;
+}
+
+.history-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.history-date {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.mood-indicator {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: center;
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+.mood-1 {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.mood-2 {
+  background: rgba(245, 101, 101, 0.1);
+  color: #ea580c;
+  border: 1px solid rgba(245, 101, 101, 0.2);
+}
+
+.mood-3 {
+  background: rgba(251, 191, 36, 0.1);
+  color: #d97706;
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.mood-4 {
+  background: rgba(34, 197, 94, 0.1);
+  color: #059669;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.mood-5 {
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.history-details {
+  margin-bottom: 1rem;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 0.95rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.suggestions-section {
+  background: rgba(251, 213, 192, 0.3);
+  border: 1px solid rgba(251, 213, 192, 0.5);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.suggestions-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.suggestions-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--text);
+}
+
+.suggestion-item {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  font-size: 0.9rem;
+}
+
+.suggestion-item:last-child {
+  margin-bottom: 0;
+}
+
+.empty-history {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.empty-history-content h3 {
+  margin: 0 0 1rem 0;
+  color: var(--text);
+  font-size: 1.2rem;
+}
+
+.empty-history-content .helper {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.empty-history-content .link {
+  color: var(--brand-600);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.empty-history-content .link:hover {
+  color: var(--brand);
+  text-decoration: underline;
+}
+
 /* Responsive design */
 @media (max-width: 640px) {
   .account-container {
@@ -609,6 +931,34 @@ function togglePasswordChange() {
   .btn-primary,
   .btn-secondary {
     width: 100%;
+  }
+
+  .history-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .history-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .mood-indicator {
+    align-self: flex-start;
+    min-width: auto;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sort-button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.85rem;
+  }
+
+  .empty-history {
+    padding: 2rem 1rem;
   }
 }
 </style>

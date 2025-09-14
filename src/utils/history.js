@@ -20,6 +20,12 @@ export function addEntry(entry) {
   saveHistory(list);
 }
 
+export function loadUserHistory(userEmail) {
+  if (!userEmail) return [];
+  const allHistory = loadHistory();
+  return allHistory.filter(entry => entry.email === userEmail);
+}
+
 export function removeEntry(id) {
   const list = loadHistory().filter(e => e.id !== id);
   saveHistory(list);
