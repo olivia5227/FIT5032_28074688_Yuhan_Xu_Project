@@ -60,7 +60,7 @@ export function useAuth(){
   const role = computed(() => state.role);
   const isLoading = computed(() => state.isLoading);
 
-  async function register({ username, email, password, address, emergencyContactName, emergencyContactPhone}) {
+  async function register({ username, email, password, address, emergencyContactName, emergencyContactPhone, role}) {
     try {
       // Create Firebase user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
