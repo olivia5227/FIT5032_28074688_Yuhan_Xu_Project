@@ -29,8 +29,8 @@ const routes = [
   { path: '/admin',          name: 'Admin',         component: Admin,        meta: { requiresAuth: true, roles: ['admin'] } },
 
   // ===== Auth pages =====
-  { path: '/login',    component: Login,    meta: { public: true } },
-  { path: '/register', component: Register, meta: { public: true } },
+  { path: '/FireLogin',    name: 'FireLogin',    component: Login,    meta: { public: true } },
+  { path: '/FireRegister', name: 'FireRegister', component: Register, meta: { public: true } },
 
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ];
@@ -47,7 +47,7 @@ router.beforeEach((to) => {
   const { isAuthed, role } = useAuth();
   if (to.meta?.public) return true;
   if (to.meta?.requiresAuth && !isAuthed.value) {
-    return { path: '/login', query: { redirect: to.fullPath } };
+    return { path: '/FireLogin', query: { redirect: to.fullPath } };
   }
   if (to.meta?.roles && !to.meta.roles.includes(role.value)) {
     return { path: '/' };
