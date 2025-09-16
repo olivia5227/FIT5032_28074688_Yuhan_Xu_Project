@@ -108,8 +108,8 @@ onUnmounted(() => {
         <!-- User Section (Right) -->
         <div class="user-section">
           <template v-if="!isAuthed">
-            <RouterLink to="/login" class="auth-link">Login</RouterLink>
-            <RouterLink to="/register" class="auth-link">Register</RouterLink>
+            <RouterLink to="/FireLogin" class="auth-link">Login</RouterLink>
+            <RouterLink to="/FireRegister" class="auth-link">Register</RouterLink>
           </template>
           
           <template v-else>
