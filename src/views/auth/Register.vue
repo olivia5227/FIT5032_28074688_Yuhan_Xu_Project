@@ -150,14 +150,16 @@ async function onSubmit() {
       email: sanitizeTextInput(email.value.trim()),
       password: password.value, // Don't sanitize password as it may remove valid special characters
       address: sanitizeTextInput(address.value.trim()),
-      role: role.value
+      role: role.value,
+      emergencyContactName: sanitizeTextInput(emergencyContactName.value.trim()),
+      emergencyContactPhone: sanitizeTextInput(emergencyContactPhone.value.trim())
     };
 
-    // Only include emergency contact for users
-    if (role.value === 'user') {
-      registrationData.emergencyContactName = sanitizeTextInput(emergencyContactName.value.trim());
-      registrationData.emergencyContactPhone = sanitizeTextInput(emergencyContactPhone.value.trim());
-    }
+    // // Only include emergency contact for users
+    // if (role.value === 'user') {
+    //   registrationData.emergencyContactName = sanitizeTextInput(emergencyContactName.value.trim());
+    //   registrationData.emergencyContactPhone = sanitizeTextInput(emergencyContactPhone.value.trim());
+    // }
 
     await register(registrationData);
     router.push('/');
@@ -300,7 +302,7 @@ async function onSubmit() {
       <!-- Login Link -->
       <div style="text-align: center; margin-top: 1rem;">
         <span class="helper">Already have an account? </span>
-        <RouterLink to="/login" class="login-link">Sign in here</RouterLink>
+        <RouterLink to="/FireLogin" class="login-link">Sign in here</RouterLink>
       </div>
     </div>
     

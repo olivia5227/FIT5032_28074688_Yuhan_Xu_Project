@@ -1,105 +1,145 @@
-// Simple demo auth store (LocalStorage + SHA-256 hashing)
-// NOTE: for coursework only. Real apps must use server-side auth.
-
+// Firebase Authentication Store
 import { reactive, computed } from 'vue';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider
+} from 'firebase/auth';
+import {
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc
+} from 'firebase/firestore';
+import { auth, db } from '../firebase/init';
 
-const AUTH_KEY = 'auth_v1';
-const USERS_KEY = 'users_v1';
+const state = reactive({
+  user: null,
+  role: null,
+  token: null,
+  isLoading: true
+});
 
-function load(key, fallback) {
-  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-  catch { return fallback; }
-}
-function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
-
-// tiny SHA-256 helper for password hashing
-async function sha256(text) {
-  const enc = new TextEncoder().encode(text);
-  const buf = await crypto.subtle.digest('SHA-256', enc);
-  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-const state = reactive(load(AUTH_KEY, { user: null, role: null, token: null }));
+// Initialize auth state listener
+onAuthStateChanged(auth, async (firebaseUser) => {
+  if (firebaseUser) {
+    // User is signed in
+    try {
+      const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        state.user = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          username: userData.username,
+          address: userData.address,
+          emergencyContactName: userData.emergencyContactName || '',
+          emergencyContactPhone: userData.emergencyContactPhone || ''
+        };
+        state.role = userData.role || 'user';
+        state.token = await firebaseUser.getIdToken();
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  } else {
+    // User is signed out
+    state.user = null;
+    state.role = null;
+    state.token = null;
+  }
+  state.isLoading = false;
+});
 
 export function useAuth(){
-  const isAuthed = computed(()=> !!state.token);
-  const role = computed(()=> state.role);
+  const isAuthed = computed(() => !!state.user);
+  const role = computed(() => state.role);
+  const isLoading = computed(() => state.isLoading);
 
-  async function register({ username, email, password, address, emergencyContactName, emergencyContactPhone, role='user' }) {
-    const users = load(USERS_KEY, {});
-    if (users[email]) throw new Error('User already exists');
-    const hash = await sha256(password);
-    users[email] = {
-      username,
-      hash,
-      address,
-      emergencyContactName: emergencyContactName || '',
-      emergencyContactPhone: emergencyContactPhone || '',
-      role
-    };
-    save(USERS_KEY, users);
-    await login({ email, password }); // auto-sign-in
+  async function register({ username, email, password, address, emergencyContactName, emergencyContactPhone, role}) {
+    try {
+      // Create Firebase user
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+
+      // Save additional user data to Firestore
+      await setDoc(doc(db, 'users', firebaseUser.uid), {
+        username,
+        email,
+        address,
+        emergencyContactName: emergencyContactName || '',
+        emergencyContactPhone: emergencyContactPhone || '',
+        role,
+        createdAt: new Date().toISOString()
+      });
+
+      // State will be updated automatically by onAuthStateChanged
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw new Error(error.message || 'Registration failed');
+    }
   }
 
   async function login({ email, password }) {
-    const users = load(USERS_KEY, {});
-    const record = users[email];
-    if (!record) throw new Error('User not found');
-    const hash = await sha256(password);
-    if (record.hash !== hash) throw new Error('Invalid credentials');
-    state.user = {
-      email,
-      username: record.username,
-      address: record.address,
-      emergencyContactName: record.emergencyContactName || '',
-      emergencyContactPhone: record.emergencyContactPhone || ''
-    };
-    state.role = record.role;
-    state.token = `demo_${Date.now()}`;
-    save(AUTH_KEY, state);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // State will be updated automatically by onAuthStateChanged
+    } catch (error) {
+      console.error('Login error:', error);
+      throw new Error(error.message || 'Login failed');
+    }
   }
 
-  function logout(){
-    state.user = null; state.role = null; state.token = null;
-    save(AUTH_KEY, state);
+  async function logout() {
+    try {
+      await signOut(auth);
+      // State will be updated automatically by onAuthStateChanged
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw new Error('Logout failed');
+    }
   }
 
   async function updateUserInfo({ username, address, emergencyContactName, emergencyContactPhone, currentPassword, newPassword }) {
     if (!state.user) throw new Error('User not authenticated');
 
-    const users = load(USERS_KEY, {});
-    const userRecord = users[state.user.email];
+    try {
+      const userRef = doc(db, 'users', state.user.uid);
 
-    if (!userRecord) throw new Error('User not found');
+      // If changing password, reauthenticate first
+      if (newPassword && currentPassword) {
+        const credential = EmailAuthProvider.credential(state.user.email, currentPassword);
+        await reauthenticateWithCredential(auth.currentUser, credential);
+        await updatePassword(auth.currentUser, newPassword);
+      }
 
-    // If changing password, verify current password
-    if (newPassword) {
-      if (!currentPassword) throw new Error('Current password required to change password');
-      const currentHash = await sha256(currentPassword);
-      if (currentHash !== userRecord.hash) throw new Error('Current password incorrect');
-      userRecord.hash = await sha256(newPassword);
+      // Update user info in Firestore
+      await updateDoc(userRef, {
+        username,
+        address,
+        emergencyContactName: emergencyContactName || '',
+        emergencyContactPhone: emergencyContactPhone || '',
+        updatedAt: new Date().toISOString()
+      });
+
+      // Update local state
+      state.user = {
+        ...state.user,
+        username,
+        address,
+        emergencyContactName: emergencyContactName || '',
+        emergencyContactPhone: emergencyContactPhone || ''
+      };
+
+    } catch (error) {
+      console.error('Update user info error:', error);
+      throw new Error(error.message || 'Failed to update user information');
     }
-
-    // Update user info
-    userRecord.username = username;
-    userRecord.address = address;
-    userRecord.emergencyContactName = emergencyContactName || '';
-    userRecord.emergencyContactPhone = emergencyContactPhone || '';
-
-    // Update local storage
-    save(USERS_KEY, users);
-
-    // Update current state
-    state.user = {
-      email: state.user.email,
-      username,
-      address,
-      emergencyContactName: emergencyContactName || '',
-      emergencyContactPhone: emergencyContactPhone || ''
-    };
-
-    save(AUTH_KEY, state);
   }
 
-  return { state, isAuthed, role, register, login, logout, updateUserInfo };
+  return { state, isAuthed, role, isLoading, register, login, logout, updateUserInfo };
 }

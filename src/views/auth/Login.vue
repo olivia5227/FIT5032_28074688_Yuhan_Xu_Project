@@ -113,7 +113,7 @@ async function onSubmit(){
       <!-- Register Link -->
       <div style="text-align: center; margin-top: 1rem;">
         <span class="helper">Don't have an account? </span>
-        <RouterLink to="/register" class="register-link">Create one here</RouterLink>
+        <RouterLink to="/FireRegister" class="register-link">Create one here</RouterLink>
       </div>
     </div>
   </section>
